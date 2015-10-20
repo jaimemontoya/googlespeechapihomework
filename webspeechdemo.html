@@ -294,11 +294,21 @@ if (!('webkitSpeechRecognition' in window)) {
       } else {
         interim_transcript += event.results[i][0].transcript;
 
-	console.log(get_word_count(interim_transcript));
-
+	
+	
+        
 
 
       }
+
+
+      //console.log(get_word_count(interim_transcript));
+      var d = new Date();
+      var n = d.getSeconds();
+      console.log(n);
+
+
+
     }
     final_transcript = capitalize(final_transcript);
     final_span.innerHTML = linebreak(final_transcript);
@@ -425,6 +435,12 @@ function array_sum(arr) {
   });
 }
 
+
+
+// Execute code every five seconds.
+//window.setInterval(function(){
+  //console.log("Print every five seconds");
+//}, 5000);
 
 
 </script>
