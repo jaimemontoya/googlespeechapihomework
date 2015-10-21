@@ -135,10 +135,20 @@
 </div>
 <script>
 
-var myglobalvariable = '';
-var numofwords = [];
-
-
+// State of the process. The list of possible states are:
+// 1) 'greeting'
+// 2) 'accountinformation'
+// 3) 'technicalsupport'
+// 4) 'productinformation'
+var currentstate = 'greeting';
+// Flag to determine when to show a message to the user, which will happen when the user choses one of the options available.
+var printmessage = false;
+// Counter of digits corresponding to the credit card.
+var creditcarddigitcounter = 0;
+// Validate if the expiration month of the credit card was mentioned.
+var expirationmonthdone = false;
+// Validate if the expiration year of the credit card was mentioned.
+var expirationyeardone = false;
 
 var langs =
 [['Afrikaans',       ['af-ZA']],
@@ -301,8 +311,53 @@ if (!('webkitSpeechRecognition' in window)) {
       } else {
         interim_transcript += event.results[i][0].transcript;
 
+	// Go back to the Home Menu whenever the person says "Home".
+	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
+		// Print the greeting.
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
+		currentstate = 'greeting';
+	}
+	// This is when the user choses "Account Information".
+	if((currentstate == 'greeting') && (interim_transcript.includes("one") || interim_transcript.includes("One") || interim_transcript.includes("1"))){
+		console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
+		currentstate = 'accountinformation';		
+	}
+	// This is when the user choses "Account Information" > "Check Balance".
+	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){	
+		console.log("The balance associated to your phone number is $2,034.00");
+		currentstate = 'accountinformation_checkbalance';
+	}
+	// This is when the user choses "Account Information" > "Pay Balance".
+	if((currentstate == 'accountinformation') && (interim_transcript.includes("pay") || interim_transcript.includes("Payment"))){
+		console.log("First, please let us know the expiration date of your card. Then, provide 15 digits to validate your credit card. The first 12 digits will correspond to your credit card number, and the last three digits are for the security code in the back of your card.");
+		currentstate = 'accountinformation_paybalance';
+	}
+	// Validate payment process.
+	if(currentstate == 'accountinformation_paybalance'){
+		// Assuming that the expiration date of a credit card cannot go beyong 2019, and cannot be from 2014 or before.
+		if(interim_transcript.includes("2015") || interim_transcript.includes("2016") || interim_transcript.includes("2017") || interim_transcript.includes("2017") || interim_transcript.includes("2018") || interim_transcript.includes("2019")){
+			expirationyeardone = true;
+		}		
+		if(interim_transcript.includes("january") || interim_transcript.includes("January") || interim_transcript.includes("february") || interim_transcript.includes("February") || interim_transcript.includes("march") || interim_transcript.includes("March") || interim_transcript.includes("april") || interim_transcript.includes("April") || interim_transcript.includes("may") || interim_transcript.includes("May") || interim_transcript.includes("june") || interim_transcript.includes("June") || interim_transcript.includes("july") || interim_transcript.includes("Julyy") || interim_transcript.includes("august") || interim_transcript.includes("August") || interim_transcript.includes("september") || interim_transcript.includes("September") || interim_transcript.includes("october") || interim_transcript.includes("October") || interim_transcript.includes("november") || interim_transcript.includes("November") || interim_transcript.includes("december") || interim_transcript.includes("December")){
+			expirationmonthdone = true;
+		}		
+		if((expirationyeardone == true) && (expirationmonthdone == true)){
+			console.log(creditcarddigitcounter);			
+			if(interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9")){
+				creditcarddigitcounter += 1;
+				console.log(creditcarddigitcounter);
+				// The counter includes the 12 digits of the credit card plus the 3 digits of the security code.
+				if(creditcarddigitcounter >= 15){
+					console.log("Your credit card number information has been received and we will let you know by email if your payment was approved.");				
+					// Restart the values for potential new attempts in case the user goes back to the Home Menu.
+					expirationyeardone = false;
+					expirationmonthdone = false;
+				}
+			}
+		}
+	}
 	
-	myglobalvariable = interim_transcript;
+	
 	
         
 
@@ -443,5 +498,13 @@ function array_sum(arr) {
     return a + b;
   });
 }
+
+// Print the greeting.
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
+
+// Execute code every two seconds.
+//window.setInterval(function(){
+// 	console.log(currentstate);
+//}, 2000);
 
 </script>
