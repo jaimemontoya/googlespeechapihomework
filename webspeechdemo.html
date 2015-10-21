@@ -134,6 +134,12 @@
   </div>
 </div>
 <script>
+
+var myglobalvariable = '';
+var numofwords = [];
+
+
+
 var langs =
 [['Afrikaans',       ['af-ZA']],
  ['Bahasa Indonesia',['id-ID']],
@@ -282,7 +288,8 @@ if (!('webkitSpeechRecognition' in window)) {
 
   recognition.onresult = function(event) {
     var interim_transcript = '';
-    for (var i = event.resultIndex; i < event.results.length; ++i) {
+    for (var i = event.resultIndex; i < event.results.length; ++i) {      
+		
       // It is final when the user clicks the microphone to stop the speech recognition process.
       if (event.results[i].isFinal) {
         final_transcript += event.results[i][0].transcript;
@@ -295,6 +302,7 @@ if (!('webkitSpeechRecognition' in window)) {
         interim_transcript += event.results[i][0].transcript;
 
 	
+	myglobalvariable = interim_transcript;
 	
         
 
@@ -303,9 +311,10 @@ if (!('webkitSpeechRecognition' in window)) {
 
 
       //console.log(get_word_count(interim_transcript));
-      var d = new Date();
-      var n = d.getSeconds();
-      console.log(n);
+      //var d = new Date();
+      //var n = d.getSeconds();
+      //console.log(n);
+      
 
 
 
@@ -438,9 +447,15 @@ function array_sum(arr) {
 
 
 // Execute code every five seconds.
-//window.setInterval(function(){
-  //console.log("Print every five seconds");
-//}, 5000);
+window.setInterval(function(){
+  //console.log(get_word_count(myglobalvariable) * 12); 
+  if(((get_word_count(myglobalvariable) * 12) < 133)){
+    console.log("Your speaking rate is " + get_word_count(myglobalvariable) * 12 + " words per minute. You are speaking too slowly.");
+  }
+  if(((get_word_count(myglobalvariable) * 12) > 188)){
+    console.log("Your speaking rate is " + get_word_count(myglobalvariable) * 12 + " words per minute. You are speaking too quickly.");
+  }
+}, 5000);
 
 
 </script>
