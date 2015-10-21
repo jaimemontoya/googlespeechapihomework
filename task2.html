@@ -310,16 +310,31 @@ if (!('webkitSpeechRecognition' in window)) {
       // It is interim when the user is still speaking and has not clicked the microphone to stop the speech recognition process.
       } else {
         interim_transcript += event.results[i][0].transcript;
-
+	// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+	window.speechSynthesis.cancel();
 	// Go back to the Home Menu whenever the person says "Home".
 	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
+		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+		window.speechSynthesis.cancel();
 		// Print the greeting.
-		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
+		//console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");				
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
 		currentstate = 'greeting';
 	}
 	// This is when the user choses "Account Information".
 	if((currentstate == 'greeting') && (interim_transcript.includes("one") || interim_transcript.includes("One") || interim_transcript.includes("1"))){
-		console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
+		window.speechSynthesis.cancel();
+		//console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
+		var msg = new SpeechSynthesisUtterance('Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.');
+		window.speechSynthesis.speak(msg);
 		currentstate = 'accountinformation';		
 	}
 	// This is when the user choses "Account Information" > "Check Balance".
@@ -500,11 +515,19 @@ function array_sum(arr) {
 }
 
 // Print the greeting.
-		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
-
+//console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
+var msg = new SpeechSynthesisUtterance();
+var voices = window.speechSynthesis.getVoices();
+msg.voice = voices[10]; // Note: some voices don't support altering params
+msg.voiceURI = 'native';
+msg.volume = 1; // 0 to 1
+msg.rate = 1; // 0.1 to 10
+msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
+msg.lang = 'en-US';
+speechSynthesis.speak(msg);
+//window.speechSynthesis.speak(msg);
 // Execute code every two seconds.
 //window.setInterval(function(){
 // 	console.log(currentstate);
 //}, 2000);
-
 </script>
