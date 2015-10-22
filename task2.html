@@ -135,15 +135,18 @@
 </div>
 <script>
 
-// State of the process. The list of possible states are:
+// Global variables to control current state at any time. The list of possible states are:
 // 1) 'greeting'
 // 2) 'accountinformation'
 // 3) 'technicalsupport'
 // 4) 'productinformation'
+// 5) 'accountinformation_checkbalance'
 var currentstate = 'greeting';
-// Variables to control what the computer is saying.
+// Global variables to control what the computer is saying.
 var greetingspeaking = true;
 var accountinformationspeaking = false;
+var accountinformation_balancespeaking = false;
+var accountinformation_checkbalancespeaking = false;
 // Flag to determine when to show a message to the user, which will happen when the user choses one of the options available.
 var printmessage = false;
 // Counter of digits corresponding to the credit card.
@@ -301,69 +304,28 @@ if (!('webkitSpeechRecognition' in window)) {
 
   recognition.onresult = function(event) {
     var interim_transcript = '';
-    for (var i = event.resultIndex; i < event.results.length; ++i) {      
-		
+    for (var i = event.resultIndex; i < event.results.length; ++i) {		
       // It is final when the user clicks the microphone to stop the speech recognition process.
       if (event.results[i].isFinal) {
         final_transcript += event.results[i][0].transcript;
-
         //console.log(get_word_count(final_transcript));
-
-
       // It is interim when the user is still speaking and has not clicked the microphone to stop the speech recognition process.
       } else {
         interim_transcript += event.results[i][0].transcript;
-	// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-	//window.speechSynthesis.cancel();
-	// Go back to the Home Menu whenever the person says "Home".
+	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
-		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		//window.speechSynthesis.cancel();
-		// Print the greeting.
-		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");				
-		var msg = new SpeechSynthesisUtterance();
-		var voices = window.speechSynthesis.getVoices();
-		msg.voice = voices[10]; // Note: some voices don't support altering params
-		msg.voiceURI = 'native';
-		msg.volume = 1; // 0 to 1
-		msg.rate = 1; // 0.1 to 10
-		msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
-		msg.lang = 'en-US';
-		speechSynthesis.speak(msg);
 		currentstate = 'greeting';
+		greetingspeaking = true;
 	}
 	// This is when the user choses "Account Information".
 	if((currentstate == 'greeting') && (interim_transcript.includes("one") || interim_transcript.includes("One") || interim_transcript.includes("1"))){
+		currentstate = 'accountinformation';
 		accountinformationspeaking = true;
-		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		//window.speechSynthesis.cancel();
-		console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
-		var msg = new SpeechSynthesisUtterance();
-		var voices = window.speechSynthesis.getVoices();
-		msg.voice = voices[10]; // Note: some voices don't support altering params
-		msg.voiceURI = 'native';
-		msg.volume = 1; // 0 to 1
-		msg.rate = 1; // 0.1 to 10		
-		//msg.text = 'Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.';
-		msg.lang = 'en-US';
-		speechSynthesis.speak(msg);
-		currentstate = 'accountinformation';		
 	}
 	// This is when the user choses "Account Information" > "Check Balance".
-	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){			
-		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		//window.speechSynthesis.cancel();
-		console.log("The balance associated to your phone number is $2,034.00");
-		var msg = new SpeechSynthesisUtterance();
-		var voices = window.speechSynthesis.getVoices();
-		msg.voice = voices[10]; // Note: some voices don't support altering params
-		msg.voiceURI = 'native';
-		msg.volume = 1; // 0 to 1
-		msg.rate = 1; // 0.1 to 10		
-		msg.text = 'The balance associated to your phone number is $2,034.00';
-		msg.lang = 'en-US';
-		speechSynthesis.speak(msg);
+	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){
 		currentstate = 'accountinformation_checkbalance';
+		accountinformation_checkbalancespeaking = true;
 	}
 	// This is when the user choses "Account Information" > "Pay Balance".
 	if((currentstate == 'accountinformation') && (interim_transcript.includes("pay") || interim_transcript.includes("Payment"))){
@@ -552,22 +514,28 @@ function array_sum(arr) {
 
 // Execute code every two seconds.
 window.setInterval(function(){
+	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if((currentstate == 'greeting') && (greetingspeaking == true)){
 		greetingspeaking = false;		
-		// Print the greeting.
-		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");				
+		// Print the "Greeting" transcript.
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'Number One'.\nFor 'Technical Support', say 'Number Two'.\nFor 'Product Information', say 'Number Three'.");
+		// Speak the "Greeting" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
 		msg.voice = voices[10]; // Note: some voices don't support altering params
 		msg.voiceURI = 'native';
 		msg.volume = 1; // 0 to 1
 		msg.rate = 1; // 0.1 to 10
-		msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
+		msg.text = 'Welcome to Comcast. For Account Information, say Number One. For Technical Support, say Number Two. For Product Information, say Number Three.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
 	}
+	// This is when the user choses "Account Information".
 	if((currentstate == 'accountinformation') && (accountinformationspeaking == true)){
 		accountinformationspeaking = false;		
+		// Print the "Account Information" transcript.
+		console.log("Welcome to your Account Information.\nTo check your balance, say Balance.\nTo pay your balance, say Payment.\nAt any time, say Home to go back to the Home Menu.");
+		// Speak the "Account Information" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
 		msg.voice = voices[10]; // Note: some voices don't support altering params
@@ -577,7 +545,24 @@ window.setInterval(function(){
 		msg.text = 'Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
-	}	
+	}
+	// This is when the user choses "Account Information" > "Check Balance".
+	if((currentstate == 'accountinformation_checkbalance') && (accountinformation_checkbalancespeaking == true)){
+		accountinformation_checkbalancespeaking = false;
+		// Print the "Account Information" > "Check Balance" transcript.
+		console.log("The balance associated to your phone number is $2,034.00");
+		// Speak "Account Information" > "Check Balance" transcript.
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'The balance associated to your phone number is $2,034.00';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+		currentstate = 'accountinformation_checkbalance';
+	}
 }, 1000);
 
 
