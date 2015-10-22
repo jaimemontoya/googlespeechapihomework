@@ -141,6 +141,9 @@
 // 3) 'technicalsupport'
 // 4) 'productinformation'
 var currentstate = 'greeting';
+// Variables to control what the computer is saying.
+var greetingspeaking = true;
+var accountinformationspeaking = false;
 // Flag to determine when to show a message to the user, which will happen when the user choses one of the options available.
 var printmessage = false;
 // Counter of digits corresponding to the credit card.
@@ -311,13 +314,13 @@ if (!('webkitSpeechRecognition' in window)) {
       } else {
         interim_transcript += event.results[i][0].transcript;
 	// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-	window.speechSynthesis.cancel();
+	//window.speechSynthesis.cancel();
 	// Go back to the Home Menu whenever the person says "Home".
 	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
 		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		window.speechSynthesis.cancel();
+		//window.speechSynthesis.cancel();
 		// Print the greeting.
-		//console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");				
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");				
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
 		msg.voice = voices[10]; // Note: some voices don't support altering params
@@ -331,24 +334,57 @@ if (!('webkitSpeechRecognition' in window)) {
 	}
 	// This is when the user choses "Account Information".
 	if((currentstate == 'greeting') && (interim_transcript.includes("one") || interim_transcript.includes("One") || interim_transcript.includes("1"))){
-		window.speechSynthesis.cancel();
-		//console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
-		var msg = new SpeechSynthesisUtterance('Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.');
-		window.speechSynthesis.speak(msg);
+		accountinformationspeaking = true;
+		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+		//window.speechSynthesis.cancel();
+		console.log("Welcome to your 'Account Information'\nTo check your balance, say 'Balance'.\nTo pay your balance, say 'Payment'.\nAt any time, say 'Home' to go back to the Home Menu.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		//msg.text = 'Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
 		currentstate = 'accountinformation';		
 	}
 	// This is when the user choses "Account Information" > "Check Balance".
-	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){	
+	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){			
+		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+		//window.speechSynthesis.cancel();
 		console.log("The balance associated to your phone number is $2,034.00");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'The balance associated to your phone number is $2,034.00';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
 		currentstate = 'accountinformation_checkbalance';
 	}
 	// This is when the user choses "Account Information" > "Pay Balance".
 	if((currentstate == 'accountinformation') && (interim_transcript.includes("pay") || interim_transcript.includes("Payment"))){
+		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+		//window.speechSynthesis.cancel();
 		console.log("First, please let us know the expiration date of your card. Then, provide 15 digits to validate your credit card. The first 12 digits will correspond to your credit card number, and the last three digits are for the security code in the back of your card.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'First, please let us know the expiration date of your card. Then, provide 15 digits to validate your credit card. The first 12 digits will correspond to your credit card number, and the last three digits are for the security code in the back of your card.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
 		currentstate = 'accountinformation_paybalance';
 	}
 	// Validate payment process.
 	if(currentstate == 'accountinformation_paybalance'){
+		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
+		//window.speechSynthesis.cancel();
 		// Assuming that the expiration date of a credit card cannot go beyong 2019, and cannot be from 2014 or before.
 		if(interim_transcript.includes("2015") || interim_transcript.includes("2016") || interim_transcript.includes("2017") || interim_transcript.includes("2017") || interim_transcript.includes("2018") || interim_transcript.includes("2019")){
 			expirationyeardone = true;
@@ -514,17 +550,38 @@ function array_sum(arr) {
   });
 }
 
-// Print the greeting.
-//console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
-var msg = new SpeechSynthesisUtterance();
-var voices = window.speechSynthesis.getVoices();
-msg.voice = voices[10]; // Note: some voices don't support altering params
-msg.voiceURI = 'native';
-msg.volume = 1; // 0 to 1
-msg.rate = 1; // 0.1 to 10
-msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
-msg.lang = 'en-US';
-speechSynthesis.speak(msg);
+// Execute code every two seconds.
+window.setInterval(function(){
+	if((currentstate == 'greeting') && (greetingspeaking == true)){
+		greetingspeaking = false;		
+		// Print the greeting.
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'One'.\nFor 'Technical Support', say 'Two'.\nFor 'Product Information', say 'Three'.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Welcome to Comcast. For Account Information, say One. For Technical Support, say Two. For Product Information, say Three.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
+	if((currentstate == 'accountinformation') && (accountinformationspeaking == true)){		
+		accountinformationspeaking = false;		
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}	
+	console.log(currentstate);
+}, 1000);
+
+
 //window.speechSynthesis.speak(msg);
 // Execute code every two seconds.
 //window.setInterval(function(){
