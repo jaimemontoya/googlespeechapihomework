@@ -144,6 +144,7 @@
 // 6) 'accountinformation_paybalance'
 // 7) 'accountinformation_paybalanceexpirationdate'
 // 8) 'accountinformation_paybalancecreditcard12digits'
+// 9) 'accountinformation_paybalancecreditcardconfirmationcode'
 var currentstate = 'greeting';
 // Global variables to control what the computer is saying.
 var greetingspeaking = true;
@@ -153,16 +154,21 @@ var accountinformation_checkbalancespeaking = false;
 var accountinformation_paybalancespeaking = false;		
 var accountinformation_paybalanceexpirationdatespeaking = false;
 var accountinformation_paybalancecreditcard12digitsspeaking = false;
+var accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
 // Global variables to check the if the credit card information that has been provided.
 var expirationdateprovided = false;
 var expirationyearprovided = false;
 var expirationmonthprovided = false;
-// Global variable to count the number of digits the user provides for the credit card.
-var creditcardditigcounter = 0;
+// Global variable to count how many digits of the credit card the user provided (12 is the total of digits).
+var creditcardnumber12digitscounter = 0;
+// Global variable to check if the 12 digits of the credit card number have been provided.
+var creditcarnumber12digitsprovided = false;
+// Global variable to count how many digits of the confirmation code of the credit card the user provided (3 is the total of digits).
+var creditcardnumberconfirmationcodecounter = 0;
+// Global variable to check if the 3 digits of the credit card number have been provided.
+var creditcardnumberconfirmationcodeprovided = false;
 // Flag to determine when to show a message to the user, which will happen when the user choses one of the options available.
 var printmessage = false;
-// Counter of digits corresponding to the credit card.
-var creditcarddigitcounter = 0;
 // Validate if the expiration month of the credit card was mentioned.
 var expirationmonthdone = false;
 // Validate if the expiration year of the credit card was mentioned.
@@ -322,7 +328,7 @@ if (!('webkitSpeechRecognition' in window)) {
         final_transcript += event.results[i][0].transcript;
         //console.log(get_word_count(final_transcript));
       // It is interim when the user is still speaking and has not clicked the microphone to stop the speech recognition process.
-      } else {
+      } else {	
         interim_transcript += event.results[i][0].transcript;
 	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
@@ -366,37 +372,23 @@ if (!('webkitSpeechRecognition' in window)) {
 	if((currentstate == 'accountinformation_paybalanceexpirationdate') && (expirationdateprovided == true)){
 		currentstate = 'accountinformation_paybalancecreditcard12digits';
 		accountinformation_paybalancecreditcard12digitsspeaking = true;
-		if(interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9")){
-			creditcarddigitcounter += 1;
-			console.log(creditcarddigitcounter);
+	}
+	// Check if the 12 digits of the credit card number have been provided.
+	if((currentstate == 'accountinformation_paybalancecreditcard12digits') && (interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9"))){
+		creditcardnumber12digitscounter += 1;		
+		if(creditcardnumber12digitscounter >= 12){
+			currentstate = 'accountinformation_paybalancecreditcardconfirmationcode';
+			creditcarnumber12digitsprovided = true;			
+			accountinformation_paybalancecreditcardconfirmationcodespeaking = true;		
 		}
-	}	
-	// Validate payment process.
-	/*if(currentstate == 'accountinformation_paybalance'){
-		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		//window.speechSynthesis.cancel();
-		// Assuming that the expiration date of a credit card cannot go beyong 2019, and cannot be from 2014 or before.
-		if(interim_transcript.includes("2015") || interim_transcript.includes("2016") || interim_transcript.includes("2017") || interim_transcript.includes("2017") || interim_transcript.includes("2018") || interim_transcript.includes("2019")){
-			expirationyeardone = true;
-		}		
-		if(interim_transcript.includes("january") || interim_transcript.includes("January") || interim_transcript.includes("february") || interim_transcript.includes("February") || interim_transcript.includes("march") || interim_transcript.includes("March") || interim_transcript.includes("april") || interim_transcript.includes("April") || interim_transcript.includes("may") || interim_transcript.includes("May") || interim_transcript.includes("june") || interim_transcript.includes("June") || interim_transcript.includes("july") || interim_transcript.includes("Julyy") || interim_transcript.includes("august") || interim_transcript.includes("August") || interim_transcript.includes("september") || interim_transcript.includes("September") || interim_transcript.includes("october") || interim_transcript.includes("October") || interim_transcript.includes("november") || interim_transcript.includes("November") || interim_transcript.includes("december") || interim_transcript.includes("December")){
-			expirationmonthdone = true;
-		}		
-		if((expirationyeardone == true) && (expirationmonthdone == true)){
-			console.log(creditcarddigitcounter);			
-			if(interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9")){
-				creditcarddigitcounter += 1;
-				console.log(creditcarddigitcounter);
-				// The counter includes the 12 digits of the credit card plus the 3 digits of the security code.
-				if(creditcarddigitcounter >= 15){
-					console.log("Your credit card number information has been received and we will let you know by email if your payment was approved.");				
-					// Restart the values for potential new attempts in case the user goes back to the Home Menu.
-					expirationyeardone = false;
-					expirationmonthdone = false;
-				}
-			}
+	}
+	// Check if the 3 digits of the credit card confirmation code have been provided.
+	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9"))){
+		creditcardnumberconfirmationcodecounter += 1;
+		if(creditcardnumberconfirmationcodecounter >= 3){
+			creditcardnumberconfirmationcodeprovided = true;		
 		}
-	}*/
+	}
 	
 	
 	
@@ -541,7 +533,7 @@ function array_sum(arr) {
 }
 
 // Execute code every two seconds.
-window.setInterval(function(){
+window.setInterval(function(){		
 	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if((currentstate == 'greeting') && (greetingspeaking == true)){
 		greetingspeaking = false;		
@@ -620,6 +612,52 @@ window.setInterval(function(){
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
 	}
+	// This is when the user chooses "Account Information" > "Pay Balance" > "Provides credit card expiration date" > "Provides 12 digits for the credit card number".
+	if((currentstate == 'accountinformation_paybalancecreditcard12digits') && (accountinformation_paybalancecreditcard12digitsspeaking == true)){
+		accountinformation_paybalancecreditcard12digitsspeaking = false;
+		// Print the "Account Information" > "Pay Balance" > "Provides credit card expiration date" > "Provides 12 digits for the credit card number" script.
+		console.log("Please provide the 12 digits of your credit card number.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'Please provide the 12 digits of your credit card number.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
+	// This is when the user chooses "Account Information" > "Pay Balance" > "Provides credit card expiration date" > "Provides 12 digits for the credit card number".
+	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (accountinformation_paybalancecreditcardconfirmationcodespeaking == true)){
+		accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
+		// Print the "Account Information" > "Pay Balance" > "Provides credit card expiration date" > "Provides 12 digits for the credit card number" > "Provides the 3 digits of the credit card expiration code" script.
+		console.log("Please provide the 3 digits of your credit card expiration code.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'Please provide the 3 digits of your credit card expiration code.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);		
+	}
+	// After the user provides the confirmation code of the credit card, say "Congratulations" because the payment process will be complete.		
+	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (creditcardnumberconfirmationcodeprovided == true)){
+		accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
+		// Print "Congratulations" because the payment was processed successfully.
+		console.log("Congratulations! Your payment was processed successfully.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'Congratulations! Your payment was processed successfully.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);				
+	}
+	//console.log(currentstate);
 }, 1000);
 
 
