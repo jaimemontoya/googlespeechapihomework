@@ -141,12 +141,24 @@
 // 3) 'technicalsupport'
 // 4) 'productinformation'
 // 5) 'accountinformation_checkbalance'
+// 6) 'accountinformation_paybalance'
+// 7) 'accountinformation_paybalanceexpirationdate'
+// 8) 'accountinformation_paybalancecreditcard12digits'
 var currentstate = 'greeting';
 // Global variables to control what the computer is saying.
 var greetingspeaking = true;
 var accountinformationspeaking = false;
 var accountinformation_balancespeaking = false;
 var accountinformation_checkbalancespeaking = false;
+var accountinformation_paybalancespeaking = false;		
+var accountinformation_paybalanceexpirationdatespeaking = false;
+var accountinformation_paybalancecreditcard12digitsspeaking = false;
+// Global variables to check the if the credit card information that has been provided.
+var expirationdateprovided = false;
+var expirationyearprovided = false;
+var expirationmonthprovided = false;
+// Global variable to count the number of digits the user provides for the credit card.
+var creditcardditigcounter = 0;
 // Flag to determine when to show a message to the user, which will happen when the user choses one of the options available.
 var printmessage = false;
 // Counter of digits corresponding to the credit card.
@@ -329,22 +341,38 @@ if (!('webkitSpeechRecognition' in window)) {
 	}
 	// This is when the user choses "Account Information" > "Pay Balance".
 	if((currentstate == 'accountinformation') && (interim_transcript.includes("pay") || interim_transcript.includes("Payment"))){
-		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
-		//window.speechSynthesis.cancel();
-		console.log("First, please let us know the expiration date of your card. Then, provide 15 digits to validate your credit card. The first 12 digits will correspond to your credit card number, and the last three digits are for the security code in the back of your card.");
-		var msg = new SpeechSynthesisUtterance();
-		var voices = window.speechSynthesis.getVoices();
-		msg.voice = voices[10]; // Note: some voices don't support altering params
-		msg.voiceURI = 'native';
-		msg.volume = 1; // 0 to 1
-		msg.rate = 1; // 0.1 to 10		
-		msg.text = 'First, please let us know the expiration date of your card. Then, provide 15 digits to validate your credit card. The first 12 digits will correspond to your credit card number, and the last three digits are for the security code in the back of your card.';
-		msg.lang = 'en-US';
-		speechSynthesis.speak(msg);
 		currentstate = 'accountinformation_paybalance';
+		accountinformation_paybalancespeaking = true;		
 	}
-	// Validate payment process.
+	// This is when the user choses "Account Information" > "Pay Balance", and then provides the expiration date of the credit card.
 	if(currentstate == 'accountinformation_paybalance'){
+		currentstate = 'accountinformation_paybalanceexpirationdate';
+		accountinformation_paybalanceexpirationdatespeaking = true;
+	}
+	// Check if the year of the expiration date of the credit card has been provided.
+	// Assuming that the expiration date of a credit card cannot go beyong 2019, and cannot be from 2014 or before.
+	if((currentstate == 'accountinformation_paybalanceexpirationdate') && (interim_transcript.includes("2015") || interim_transcript.includes("2016") || interim_transcript.includes("2017") || interim_transcript.includes("2017") || interim_transcript.includes("2018") || interim_transcript.includes("2019"))){
+		expirationyearprovided = true;
+	}
+	// Check if the month of the expiration date of the credit card has been provided.
+	if((currentstate == 'accountinformation_paybalanceexpirationdate') && (interim_transcript.includes("january") || interim_transcript.includes("January") || interim_transcript.includes("february") || interim_transcript.includes("February") || interim_transcript.includes("march") || interim_transcript.includes("March") || interim_transcript.includes("april") || interim_transcript.includes("April") || interim_transcript.includes("may") || interim_transcript.includes("May") || interim_transcript.includes("june") || interim_transcript.includes("June") || interim_transcript.includes("july") || interim_transcript.includes("Julyy") || interim_transcript.includes("august") || interim_transcript.includes("August") || interim_transcript.includes("september") || interim_transcript.includes("September") || interim_transcript.includes("october") || interim_transcript.includes("October") || interim_transcript.includes("november") || interim_transcript.includes("November") || interim_transcript.includes("december") || interim_transcript.includes("December"))){
+		expirationmonthprovided = true;
+	}
+	// Check if both the year and month of the expiration date of the credit card have been provided.
+	if((expirationyearprovided == true) && (expirationmonthprovided == true)){
+		expirationdateprovided = true;
+	}
+	// This is when the user chooses "Account Information" > "Pay Balance" > "Provides credit card expiration date" > "Provides 12 digits for the credit card number".
+	if((currentstate == 'accountinformation_paybalanceexpirationdate') && (expirationdateprovided == true)){
+		currentstate = 'accountinformation_paybalancecreditcard12digits';
+		accountinformation_paybalancecreditcard12digitsspeaking = true;
+		if(interim_transcript.includes("0") || interim_transcript.includes("1") || interim_transcript.includes("2") || interim_transcript.includes("3") || interim_transcript.includes("4") || interim_transcript.includes("5") || interim_transcript.includes("6") || interim_transcript.includes("7") || interim_transcript.includes("8") || interim_transcript.includes("9")){
+			creditcarddigitcounter += 1;
+			console.log(creditcarddigitcounter);
+		}
+	}	
+	// Validate payment process.
+	/*if(currentstate == 'accountinformation_paybalance'){
 		// Interrupt the computer so that it does not continue talking because I already chose the option I want.
 		//window.speechSynthesis.cancel();
 		// Assuming that the expiration date of a credit card cannot go beyong 2019, and cannot be from 2014 or before.
@@ -368,7 +396,7 @@ if (!('webkitSpeechRecognition' in window)) {
 				}
 			}
 		}
-	}
+	}*/
 	
 	
 	
@@ -561,7 +589,36 @@ window.setInterval(function(){
 		msg.text = 'The balance associated to your phone number is $2,034.00';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
-		currentstate = 'accountinformation_checkbalance';
+	}
+	// This is when the user choses "Account Information" > "Pay Balance".
+	if((currentstate == 'accountinformation_paybalance') && (accountinformation_paybalancespeaking == true)){		
+		accountinformation_paybalancespeaking = false;
+		// Print the "Account Information" > "Pay Balance" transcript.
+		console.log("What is the expiration date of your credit card? Please provide the name of the month and the year.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'What is the expiration date of your credit card? Please provide the name of the month and the year.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
+	// This is when the user choses "Account Information" > "Pay Balance", and then provides the expiration date of the credit card.
+	if((currentstate == 'accountinformation_paybalanceexpirationdate') && (accountinformation_paybalanceexpirationdatespeaking == true)){
+		accountinformation_paybalanceexpirationdatespeaking = false;
+		// Print the "Account Information" > "Pay Balance" > "Provide expiration date" script.
+		console.log("What is the expiration date of your credit card? Please provide the name of the month and the year.");
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10		
+		msg.text = 'What is the expiration date of your credit card? Please provide the name of the month and the year.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
 	}
 }, 1000);
 
