@@ -135,7 +135,11 @@
 </div>
 <script>
 
+var endprogram = false;
+
+
 // Global variables to control current state at any time. The list of possible states are:
+// 0) 'agent'
 // 1) 'greeting'
 // 2) 'accountinformation'
 // 3) 'technicalsupport'
@@ -147,6 +151,7 @@
 // 9) 'accountinformation_paybalancecreditcardconfirmationcode'
 var currentstate = 'greeting';
 // Global variables to control what the computer is saying.
+var agentspeaking = true;
 var greetingspeaking = true;
 var accountinformationspeaking = false;
 var accountinformation_balancespeaking = false;
@@ -155,6 +160,8 @@ var accountinformation_paybalancespeaking = false;
 var accountinformation_paybalanceexpirationdatespeaking = false;
 var accountinformation_paybalancecreditcard12digitsspeaking = false;
 var accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
+var technicalsupportspeaking = false;
+var productinformationspeaking = false;
 // Global variables to check the if the credit card information that has been provided.
 var expirationdateprovided = false;
 var expirationyearprovided = false;
@@ -330,16 +337,31 @@ if (!('webkitSpeechRecognition' in window)) {
       // It is interim when the user is still speaking and has not clicked the microphone to stop the speech recognition process.
       } else {	
         interim_transcript += event.results[i][0].transcript;
+	// Transfer to an agent.
+	if(interim_transcript.includes("Agent") || interim_transcript.includes("agent")){
+		currentstate = 'agent';
+		agentspeaking = true;
+	}
 	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if(interim_transcript.includes("Home") || interim_transcript.includes("home")){
 		currentstate = 'greeting';
 		greetingspeaking = true;
-	}
+	}	
 	// This is when the user choses "Account Information".
 	if((currentstate == 'greeting') && (interim_transcript.includes("one") || interim_transcript.includes("One") || interim_transcript.includes("1"))){
 		currentstate = 'accountinformation';
 		accountinformationspeaking = true;
 	}
+	// This is when the user choses "Technical Support".
+	/*if((currentstate == 'greeting') && (interim_transcript.includes("two") || interim_transcript.includes("Two") || interim_transcript.includes("2"))){
+		currentstate = 'technicalsupport';
+		technicalsupportspeaking = true;
+	}*/
+	// This is when the user choses "Product Information".
+	/*if((currentstate == 'greeting') && (interim_transcript.includes("three") || interim_transcript.includes("Three") || interim_transcript.includes("3"))){
+		currentstate = 'productinformation';
+		productinformationspeaking = true;
+	}*/
 	// This is when the user choses "Account Information" > "Check Balance".
 	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){
 		currentstate = 'accountinformation_checkbalance';
@@ -534,11 +556,27 @@ function array_sum(arr) {
 
 // Execute code every two seconds.
 window.setInterval(function(){		
+	// Transfer to an agent.
+	if((currentstate == 'agent') && (agentspeaking == true)){
+		agentspeaking = false;		
+		// Print the "Transfer to Agent" transcript.
+		console.log("Your call is being transferred to an Agent.");
+		// Speak the "Transfer to Agent" transcript.
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Your call is being transferred to an Agent.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
 	// Go back to the Home Menu whenever the person says "Home". This is also the Greeting state when the program is started for the first time.
 	if((currentstate == 'greeting') && (greetingspeaking == true)){
 		greetingspeaking = false;		
 		// Print the "Greeting" transcript.
-		console.log("Welcome to Comcast.\nFor 'Account Information', say 'Number One'.\nFor 'Technical Support', say 'Number Two'.\nFor 'Product Information', say 'Number Three'.");
+		console.log("Welcome to Comcast.\nFor 'Account Information', say 'Number One'.\nFor 'Technical Support', say 'Number Two'.\nFor 'Product Information', say 'Number Three'. At any time, say Agent to speak to a representative.");
 		// Speak the "Greeting" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
@@ -546,15 +584,15 @@ window.setInterval(function(){
 		msg.voiceURI = 'native';
 		msg.volume = 1; // 0 to 1
 		msg.rate = 1; // 0.1 to 10
-		msg.text = 'Welcome to Comcast. For Account Information, say Number One. For Technical Support, say Number Two. For Product Information, say Number Three.';
+		msg.text = 'Welcome to Comcast. For Account Information, say Number One. For Technical Support, say Number Two. For Product Information, say Number Three. At any time, say Agent to speak to a representative.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
-	}
+	}	
 	// This is when the user choses "Account Information".
 	if((currentstate == 'accountinformation') && (accountinformationspeaking == true)){
 		accountinformationspeaking = false;		
 		// Print the "Account Information" transcript.
-		console.log("Welcome to your Account Information.\nTo check your balance, say Balance.\nTo pay your balance, say Payment.\nAt any time, say Home to go back to the Home Menu.");
+		console.log("Welcome to your Account Information.\nTo check your balance, say Balance.\nTo pay your balance, say Payment.\nAt any time, say Home to go back to the Home Menu");
 		// Speak the "Account Information" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
@@ -563,6 +601,38 @@ window.setInterval(function(){
 		msg.volume = 1; // 0 to 1
 		msg.rate = 1; // 0.1 to 10
 		msg.text = 'Welcome to your Account Information. To check your balance, say Balance. To pay your balance, say Payment. At any time, say Home to go back to the Home Menu.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
+	// If the user chooses "Technical Support".
+	if((currentstate == 'technicalsupport') && (technicalsupportspeaking == true)){
+		technicalsupportspeaking = false;
+		// Print the "Technical Support" transcript.
+		console.log("Please describe your problem.");
+		// Speak the "Account Information" transcript.
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Please describe your problem.';
+		msg.lang = 'en-US';
+		speechSynthesis.speak(msg);
+	}
+	// If the user chooses "Product Information".
+	if((currentstate == 'productinformation') && (productinformationspeaking == true)){
+		productinformationspeaking = false;
+		// Print the "Technical Support" transcript.
+		console.log("Please describe your problem.");
+		// Speak the "Account Information" transcript.
+		var msg = new SpeechSynthesisUtterance();
+		var voices = window.speechSynthesis.getVoices();
+		msg.voice = voices[10]; // Note: some voices don't support altering params
+		msg.voiceURI = 'native';
+		msg.volume = 1; // 0 to 1
+		msg.rate = 1; // 0.1 to 10
+		msg.text = 'Please describe your problem.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
 	}
@@ -643,10 +713,10 @@ window.setInterval(function(){
 		speechSynthesis.speak(msg);		
 	}
 	// After the user provides the confirmation code of the credit card, say "Congratulations" because the payment process will be complete.		
-	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (creditcardnumberconfirmationcodeprovided == true)){
+	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (creditcardnumberconfirmationcodeprovided == true) && (endprogram == false)){			
 		accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
 		// Print "Congratulations" because the payment was processed successfully.
-		console.log("Congratulations! Your payment was processed successfully.");
+		console.log("Congratulations! Your payment was processed successfully. Goodbye.");
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
 		msg.voice = voices[10]; // Note: some voices don't support altering params
@@ -656,7 +726,9 @@ window.setInterval(function(){
 		msg.text = 'Congratulations! Your payment was processed successfully.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);				
+		endprogram = true;
 	}
+	
 	//console.log(currentstate);
 }, 1000);
 
