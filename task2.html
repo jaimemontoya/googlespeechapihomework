@@ -134,10 +134,6 @@
   </div>
 </div>
 <script>
-
-var endprogram = false;
-
-
 // Global variables to control current state at any time. The list of possible states are:
 // 0) 'agent'
 // 1) 'greeting'
@@ -149,6 +145,7 @@ var endprogram = false;
 // 7) 'accountinformation_paybalanceexpirationdate'
 // 8) 'accountinformation_paybalancecreditcard12digits'
 // 9) 'accountinformation_paybalancecreditcardconfirmationcode'
+// Etc.
 var currentstate = 'greeting';
 // Global variables to control what the computer is saying.
 var agentspeaking = true;
@@ -162,6 +159,9 @@ var accountinformation_paybalancecreditcard12digitsspeaking = false;
 var accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
 var technicalsupportspeaking = false;
 var productinformationspeaking = false;
+var buyingproductspeaking = true;
+var technicalsupporttriedturningonoffspeaking = true;
+var technicalsupportdidnottryturningonoffspeaking = true;
 // Global variables to check the if the credit card information that has been provided.
 var expirationdateprovided = false;
 var expirationyearprovided = false;
@@ -353,15 +353,31 @@ if (!('webkitSpeechRecognition' in window)) {
 		accountinformationspeaking = true;
 	}
 	// This is when the user choses "Technical Support".
-	/*if((currentstate == 'greeting') && (interim_transcript.includes("two") || interim_transcript.includes("Two") || interim_transcript.includes("2"))){
+	if((currentstate == 'greeting') && (interim_transcript.includes("two") || interim_transcript.includes("Two") || interim_transcript.includes("2"))){
 		currentstate = 'technicalsupport';
 		technicalsupportspeaking = true;
-	}*/
+	}
+  // This is when the user choses "Technical Support", and has already tried turning on/off the device.
+  if((currentstate == 'technicalsupport') && (interim_transcript.includes("Yes") || interim_transcript("yes"))){
+    currentstate = 'technicalsupporttriedturningonoff';
+    technicalsupporttriedturningonoffspeaking = true;
+  }
+  // This is when the user choses "Technical Support", and has not tried turning on/off the device.
+  if((currentstate == 'technicalsupport') && (interim_transcript.includes("No") || interim_transcript("no"))){
+    currentstate = 'technicalsupportdidnottryturningonoff';
+    technicalsupportdidnottryturningonoffspeaking = true;
+  }
 	// This is when the user choses "Product Information".
-	/*if((currentstate == 'greeting') && (interim_transcript.includes("three") || interim_transcript.includes("Three") || interim_transcript.includes("3"))){
+	if((currentstate == 'greeting') && (interim_transcript.includes("three") || interim_transcript.includes("Three") || interim_transcript.includes("3"))){
 		currentstate = 'productinformation';
 		productinformationspeaking = true;
-	}*/
+	}
+
+  // This is when the uses mentions that he/she wants to buy a phone or a computer, after selecting "Product Information".
+  if((currentstate == 'productinformation') && (interim_transcript.includes("phone") || interim_transcript.includes("computer") || interim_transcript.includes("Phone") || interim_transcript.includes("Computer"))){
+    currentstate = 'buyingproduct';
+    buyingproductspeaking = true;
+  }
 	// This is when the user choses "Account Information" > "Check Balance".
 	if((currentstate == 'accountinformation') && (interim_transcript.includes("balance") || interim_transcript.includes("Balance"))){
 		currentstate = 'accountinformation_checkbalance';
@@ -608,7 +624,7 @@ window.setInterval(function(){
 	if((currentstate == 'technicalsupport') && (technicalsupportspeaking == true)){
 		technicalsupportspeaking = false;
 		// Print the "Technical Support" transcript.
-		console.log("Please describe your problem.");
+		console.log("Please describe your problem and let us know if you have tried turning off and on your device.");
 		// Speak the "Account Information" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
@@ -616,7 +632,7 @@ window.setInterval(function(){
 		msg.voiceURI = 'native';
 		msg.volume = 1; // 0 to 1
 		msg.rate = 1; // 0.1 to 10
-		msg.text = 'Please describe your problem.';
+		msg.text = 'Please describe your problem and let us know if you have tried turning off and on your device.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
 	}
@@ -624,7 +640,7 @@ window.setInterval(function(){
 	if((currentstate == 'productinformation') && (productinformationspeaking == true)){
 		productinformationspeaking = false;
 		// Print the "Technical Support" transcript.
-		console.log("Please describe your problem.");
+		console.log("The available products are: phones and computers. Please mention what you would like to buy.");
 		// Speak the "Account Information" transcript.
 		var msg = new SpeechSynthesisUtterance();
 		var voices = window.speechSynthesis.getVoices();
@@ -632,7 +648,7 @@ window.setInterval(function(){
 		msg.voiceURI = 'native';
 		msg.volume = 1; // 0 to 1
 		msg.rate = 1; // 0.1 to 10
-		msg.text = 'Please describe your problem.';
+		msg.text = 'The available products are: phones and computers. Please mention what you would like to buy.';
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);
 	}
@@ -712,8 +728,50 @@ window.setInterval(function(){
 		msg.lang = 'en-US';
 		speechSynthesis.speak(msg);		
 	}
-	// After the user provides the confirmation code of the credit card, say "Congratulations" because the payment process will be complete.		
-	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (creditcardnumberconfirmationcodeprovided == true) && (endprogram == false)){			
+  // This is when the uses mentions that he/she wants to buy a phone or a computer, after selecting "Product Information".
+  if((currentstate == 'buyingproduct') && (buyingproductspeaking == true)){
+    buyingproductspeaking = false;
+    console.log("Congratulations, the product you mentioned is available. You can go to Account Information to validate and complete the payment process.");
+    var msg = new SpeechSynthesisUtterance();
+    var voices = window.speechSynthesis.getVoices();
+    msg.voice = voices[10]; // Note: some voices don't support altering params
+    msg.voiceURI = 'native';
+    msg.volume = 1; // 0 to 1
+    msg.rate = 1; // 0.1 to 10    
+    msg.text = 'Congratulations, the product you mentioned is available. You can go to Account Information to validate and complete the payment process.';
+    msg.lang = 'en-US';
+    speechSynthesis.speak(msg); 
+  }
+   // This is when the user choses "Technical Support", and has already tried turning on/off the device.
+  if((currentstate == 'technicalsupporttriedturningonoff') && (technicalsupporttriedturningonoffspeaking == true)){
+    technicalsupporttriedturningonoffspeaking = false;
+    console.log("We will connect you to the next available technical agent.");
+    var msg = new SpeechSynthesisUtterance();
+    var voices = window.speechSynthesis.getVoices();
+    msg.voice = voices[10]; // Note: some voices don't support altering params
+    msg.voiceURI = 'native';
+    msg.volume = 1; // 0 to 1
+    msg.rate = 1; // 0.1 to 10    
+    msg.text = 'We will connect you to the next available technical agent.';
+    msg.lang = 'en-US';
+    speechSynthesis.speak(msg); 
+  }
+  // This is when the user choses "Technical Support", and has not tried turning on/off the device.
+  if((currentstate == 'technicalsupportdidnottryturningonoff') && (technicalsupportdidnottryturningonoffspeaking == true)){
+    technicalsupportdidnottryturningonoffspeaking = false;
+    console.log("Please try turning on and off the device, and if it still does not work, say 'Speak to an Agent' so that we can transfer you to the next available representative.");
+    var msg = new SpeechSynthesisUtterance();
+    var voices = window.speechSynthesis.getVoices();
+    msg.voice = voices[10]; // Note: some voices don't support altering params
+    msg.voiceURI = 'native';
+    msg.volume = 1; // 0 to 1
+    msg.rate = 1; // 0.1 to 10    
+    msg.text = 'Please try turning on and off the device, and if it still does not work, say "Speak to an Agent" so that we can transfer you to the next available representative.';
+    msg.lang = 'en-US';
+    speechSynthesis.speak(msg); 
+  }
+	// After the user provides the confirmation code of the credit card, say "Congratulations" because the payment process will be complete.	
+	if((currentstate == 'accountinformation_paybalancecreditcardconfirmationcode') && (creditcardnumberconfirmationcodeprovided == true)){
 		accountinformation_paybalancecreditcardconfirmationcodespeaking = false;
 		// Print "Congratulations" because the payment was processed successfully.
 		console.log("Congratulations! Your payment was processed successfully. Goodbye.");
@@ -729,7 +787,7 @@ window.setInterval(function(){
 		endprogram = true;
 	}
 	
-	//console.log(currentstate);
+	console.log(currentstate);
 }, 1000);
 
 
